@@ -1,7 +1,7 @@
 /* ──────────────────────────────────────────────
    GestorPro – Design System Premium
    Fonte: Inter (Google Fonts)
-   Tema: Dark Glassmorphism + Gradientes
+   Tema: Dark Green + Blue Neon Theme
    ────────────────────────────────────────────── */
 
 *, *::before, *::after {
@@ -11,27 +11,28 @@
 }
 
 :root {
-  --font: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
 
   /* Paleta principal */
-  --bg-dark:       #0a0e1a;
-  --bg-surface:    #111827;
-  --bg-glass:      rgba(255,255,255,0.06);
-  --glass-border:  rgba(255,255,255,0.12);
+  --bg-dark:       #050d1a;   /* Navy muito escuro */
+  --bg-surface:    #0a1628;   /* Fundo dos cards */
+  --bg-glass:      rgba(255,255,255,0.03);
+  --glass-border:  rgba(255,255,255,0.08);
   --glass-blur:    16px;
 
-  --accent:        #6366f1;   /* indigo */
-  --accent-hover:  #4f52e8;
-  --success:       #10b981;   /* emerald */
-  --success-hover: #059669;
-  --danger:        #ef4444;
-  --danger-hover:  #dc2626;
+  --accent:        #00c896;   /* Verde Neon / Esmeralda */
+  --accent-hover:  #00a87e;
+  --success:       #00c896;
+  --success-hover: #00a87e;
+  --danger:        #f43f5e;
+  --danger-hover:  #e11d48;
   --warning:       #f59e0b;
-  --info:          #3b82f6;
+  --info:          #0ea5e9;   /* Azul Elétrico */
+  --info-hover:    #0284c7;
 
-  --text-primary:  #f1f5f9;
-  --text-muted:    #94a3b8;
-  --text-dim:      #64748b;
+  --text-primary:  #e2f0ff;   /* Texto claro levemente azulado */
+  --text-muted:    #7ea8c4;
+  --text-dim:      #4e6b82;
 
   /* Sidebar */
   --sidebar-w:     260px;
@@ -40,9 +41,9 @@
   --radius-sm:     6px;
   --radius:        12px;
   --radius-lg:     18px;
-  --shadow-card:   0 8px 32px rgba(0,0,0,0.45);
-  --shadow-btn:    0 4px 14px rgba(99,102,241,0.35);
-  --shadow-glow:   0 0 20px rgba(99,102,241,0.25);
+  --shadow-card:   0 8px 32px rgba(0,0,0,0.6);
+  --shadow-btn:    0 4px 14px rgba(0,200,150,0.3);
+  --shadow-glow:   0 0 20px rgba(0,200,150,0.2);
 
   /* Transições */
   --ease:          cubic-bezier(.4,0,.2,1);
@@ -223,24 +224,24 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--info) 100%);
   color: #fff;
   box-shadow: var(--shadow-btn);
 }
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--accent-hover) 0%, #7c3aed 100%);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--info-hover) 100%);
+  box-shadow: 0 6px 20px rgba(0,200,150,0.5);
   transform: translateY(-1px);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--success) 0%, #0284c7 100%);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+  box-shadow: 0 4px 14px rgba(0,200,150,0.3);
 }
 .btn-success:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--success-hover) 0%, #047857 100%);
-  box-shadow: 0 6px 20px rgba(16,185,129,0.5);
+  background: linear-gradient(135deg, var(--success-hover) 0%, #0369a1 100%);
+  box-shadow: 0 6px 20px rgba(0,200,150,0.5);
   transform: translateY(-1px);
 }
 
