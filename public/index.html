@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FF4B6E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Comanda — Sistema do Restaurante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#F6EEF3; --ink:#1B1425; --ink-soft:#7C7189;
+  --accent:#FF4B6E; --accent-2:#7C4DFF; --accent-3:#00C897; --accent-4:#FFB020;
+  --accent-ink:#FFFFFF; --danger:#E23744; --danger-soft:#FDE6E8; --line:#F0E4EC;
+  --shadow:0 10px 28px rgba(124,77,255,0.10); --shadow-lg:0 20px 46px rgba(124,77,255,0.16);
+  --grad:linear-gradient(135deg,#FF4B6E 0%,#FF7A59 45%,#7C4DFF 100%);
+  --grad-soft:linear-gradient(135deg,rgba(255,75,110,0.12),rgba(124,77,255,0.12));
+  --radius:18px; --radius-sm:12px;
+}
+.dark{
+  --bg:#120E1A; --surface:#1C1626; --surface-2:#241C33; --ink:#F5EEFF; --ink-soft:#B0A3C9;
+  --accent:#FF6B87; --accent-2:#A07CFF; --accent-3:#33E3B0; --accent-4:#FFC85C;
+  --accent-ink:#1B1425; --danger:#FF7B7B; --danger-soft:#341E24; --line:#2C2340;
+  --shadow:0 10px 30px rgba(0,0,0,0.5); --shadow-lg:0 22px 50px rgba(0,0,0,0.6);
+  --grad:linear-gradient(135deg,#FF6B87 0%,#FF9770 45%,#A07CFF 100%);
+  --grad-soft:linear-gradient(135deg,rgba(255,107,135,0.16),rgba(160,124,255,0.16));
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;transition:background .25s,color .25s;}
+h1,h2,h3,.display{font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:-.01em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-size:14.5px;width:100%;outline:none;transition:border-color .15s, box-shadow .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--grad-soft);}
+label{font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:7px;}
+.field{margin-bottom:15px;}
+.btn{border:none;border-radius:999px;padding:12px 20px;font-weight:700;font-size:14.5px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s, opacity .15s, box-shadow .15s;font-family:'Inter',sans-serif;}
+.btn:active{transform:scale(.96);}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(255,75,110,0.28);}
+.btn-primary:hover{opacity:.94;transform:translateY(-1px);}
+.btn-outline{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:var(--danger-soft);color:var(--danger);}
+.btn-danger:hover{opacity:.85;}
+.btn-ghost{background:transparent;color:var(--ink-soft);padding:8px 10px;border-radius:10px;}
+.btn-ghost:hover{background:var(--surface-2);}
+.btn-sm{padding:9px 15px;font-size:13px;}
+.btn-block{width:100%;}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(251,246,248,0.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.dark .topbar{background:rgba(18,14,26,0.85);}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;max-width:1180px;margin:0 auto;gap:12px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:38px;height:38px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;flex-shrink:0;box-shadow:0 6px 16px rgba(255,75,110,.35);}
+.logo-text{font-family:'Poppins',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.02em;}
+.role-tabs{display:flex;gap:3px;background:var(--surface-2);padding:4px;border-radius:999px;}
+.role-tab{padding:9px 16px;border-radius:999px;border:none;background:transparent;color:var(--ink-soft);font-weight:700;font-size:13px;transition:all .18s;}
+.role-tab.active{background:var(--grad);color:#fff;box-shadow:0 4px 12px rgba(255,75,110,.3);}
+.icon-btn{width:40px;height:40px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--ink);position:relative;flex-shrink:0;font-size:16px;transition:border-color .15s, transform .15s;}
+.icon-btn:hover{border-color:var(--accent);transform:translateY(-1px);}
+.badge{position:absolute;top:-5px;right:-5px;background:var(--grad);color:#fff;font-size:10.5px;font-weight:800;min-width:19px;height:19px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 3px 8px rgba(255,75,110,.4);}
+main{max-width:1180px;margin:0 auto;padding:26px 20px 90px;min-height:70vh;}
+.hidden{display:none !important;}
+.hero{position:relative;border-radius:24px;background:var(--grad);padding:36px 30px;margin-bottom:26px;overflow:hidden;color:#fff;box-shadow:var(--shadow-lg);}
+.hero::before{content:"";position:absolute;top:-60px;right:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.14);}
+.hero::after{content:"";position:absolute;bottom:-80px;right:120px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.10);}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);padding:5px 13px;border-radius:999px;font-weight:700;font-size:12px;letter-spacing:.04em;margin-bottom:12px;}
+.hero-title{font-size:30px;margin:0 0 8px;position:relative;z-index:1;}
+.hero-sub{opacity:.92;font-size:14.5px;margin:0;position:relative;z-index:1;max-width:440px;}
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:22px;}
+.cat-tab{white-space:nowrap;padding:10px 18px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:13.5px;transition:all .15s;}
+.cat-tab.active{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(255,75,110,.28);}
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:18px;}
+.prod-card{overflow:hidden;display:flex;flex-direction:column;transition:transform .18s, box-shadow .18s;position:relative;}
+.prod-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+.prod-img-wrap{position:relative;width:100%;aspect-ratio:4/3;background:var(--surface-2);}
+.prod-img{width:100%;height:100%;object-fit:cover;display:block;}
+.prod-img-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:34px;background:var(--grad-soft);}
+.prod-cat-chip{position:absolute;top:10px;left:10px;background:rgba(27,20,37,0.65);backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;}
+.fab-add{position:absolute;bottom:-18px;right:12px;width:42px;height:42px;border-radius:999px;background:var(--grad);color:#fff;border:3px solid var(--surface);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;box-shadow:0 8px 18px rgba(255,75,110,.35);transition:transform .15s;}
+.fab-add:hover{transform:scale(1.08) rotate(90deg);}
+.prod-body{padding:16px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.prod-name{font-weight:700;font-size:15.5px;margin:0;font-family:'Poppins',sans-serif;}
+.prod-foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+.price{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent-3);font-size:15.5px;}
+.cart-btn{position:relative;}
+.drawer-overlay{position:fixed;inset:0;background:rgba(20,12,25,.5);backdrop-filter:blur(2px);z-index:60;display:flex;justify-content:flex-end;}
+.drawer{width:min(440px,100%);background:var(--bg);height:100%;padding:22px;overflow-y:auto;display:flex;flex-direction:column;}
+.cart-item{display:flex;gap:10px;padding:13px 0;border-bottom:1px solid var(--line);}
+.cart-item img{width:58px;height:58px;border-radius:12px;object-fit:cover;background:var(--surface-2);flex-shrink:0;}
+.qty-ctrl{display:flex;align-items:center;gap:8px;}
+.qty-ctrl button{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;}
+.pay-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.pay-tab{flex:1;padding:12px 8px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;}
+.pay-tab .pay-icon{font-size:19px;}
+.pay-tab.active{border-color:var(--accent);background:var(--grad-soft);color:var(--ink);}
+.pix-box{background:var(--surface-2);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.pix-key-row{display:flex;gap:8px;align-items:center;}
+.pix-key{flex:1;background:var(--surface);border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;}
+.copy-btn{flex-shrink:0;}
+.info-box{background:var(--surface-2);border-radius:14px;padding:14px 16px;font-size:13.5px;line-height:1.5;color:var(--ink);}
+.modal-overlay{position:fixed;inset:0;background:rgba(20,12,25,.5);backdrop-filter:blur(2px);z-index:70;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{width:min(520px,100%);max-height:88vh;overflow-y:auto;background:var(--bg);border-radius:22px;padding:24px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.addon-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.addon-row input[type=checkbox]{width:19px;height:19px;flex-shrink:0;accent-color:var(--accent);}
+.ticket{position:relative;background:var(--surface);border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow);padding:18px 18px 16px;margin-bottom:16px;border-left:5px solid var(--accent-4);}
+.ticket.st-pendente{border-left-color:var(--danger);}
+.ticket.st-preparando{border-left-color:var(--accent-4);}
+.ticket.st-pronto{border-left-color:var(--accent-3);}
+.ticket.st-em_entrega{border-left-color:var(--accent-2);}
+.ticket.st-entregue{border-left-color:var(--line);}
+.ticket.st-cancelado{border-left-color:var(--danger);opacity:.7;}
+.ticket-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px dashed var(--line);padding-bottom:10px;margin-bottom:10px;gap:10px;}
+.ticket-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--accent);}
+.status-pill{font-size:11px;font-weight:800;padding:5px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+.status-pill.st-pendente{background:var(--danger-soft);color:var(--danger);}
+.status-pill.st-preparando{background:#FFF0D6;color:#9A6A00;}
+.dark .status-pill.st-preparando{background:#3A2A10;color:#FFC85C;}
+.status-pill.st-pronto{background:#DBF6EC;color:#00905F;}
+.dark .status-pill.st-pronto{background:#0F3327;color:#33E3B0;}
+.status-pill.st-em_entrega{background:#EAE2FF;color:#5B32D6;}
+.dark .status-pill.st-em_entrega{background:#241A3D;color:#A07CFF;}
+.status-pill.st-entregue{background:var(--surface-2);color:var(--ink-soft);}
+.status-pill.st-cancelado{background:var(--danger-soft);color:var(--danger);}
+.pay-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft);display:inline-flex;align-items:center;gap:4px;}
+.ticket-item{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;}
+.ticket-addon{font-size:12px;color:var(--ink-soft);padding-left:12px;}
+.ticket-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);flex-wrap:wrap;gap:8px;}
+.ticket-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.auth-wrap{max-width:410px;margin:50px auto;}
+.auth-tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:999px;margin-bottom:20px;}
+.auth-tab{flex:1;padding:10px;border-radius:999px;border:none;background:transparent;color:var(--ink-soft);font-weight:700;font-size:13.5px;}
+.auth-tab.active{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.vtabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:22px;background:var(--surface-2);padding:5px;border-radius:999px;width:fit-content;max-width:100%;}
+.vtab{padding:10px 16px;border-radius:999px;border:none;background:transparent;color:var(--ink-soft);font-weight:700;font-size:13.5px;white-space:nowrap;transition:all .15s;}
+.vtab.active{background:var(--grad);color:#fff;box-shadow:0 4px 12px rgba(255,75,110,.28);}
+.row{display:flex;gap:14px;flex-wrap:wrap;}
+.col{flex:1;min-width:220px;}
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);}
+.list-row:last-child{border-bottom:none;}
+.thumb{width:46px;height:46px;border-radius:12px;object-fit:cover;background:var(--surface-2);flex-shrink:0;}
+.thumb-empty{width:46px;height:46px;border-radius:12px;background:var(--grad-soft);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);flex-shrink:0;}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--ink-soft);}
+.pill{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface-2);font-size:12px;font-weight:700;color:var(--ink-soft);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:13px 24px;border-radius:999px;font-weight:700;font-size:14px;z-index:100;box-shadow:var(--shadow-lg);}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-3);display:inline-block;margin-right:6px;}
+.conn-dot.off{background:var(--danger);}
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
+@media(max-width:640px){.hero-title{font-size:24px;}.topbar-inner{flex-wrap:wrap;gap:10px;}.hero{padding:26px 22px;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <div class="logo-mark">🍔</div>
+      <div class="logo-text">Comanda</div>
+    </div>
+    <div class="role-tabs" id="roleTabs"></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="conn-dot" id="connDot" title="Conectando…"></span>
+      <button class="icon-btn cart-btn hidden" id="cartBtn" onclick="openCart()">
+        🛒<span class="badge hidden" id="cartBadge">0</span>
+      </button>
+      <button class="icon-btn" id="darkBtn" onclick="toggleDark()">🌙</button>
+    </div>
+  </div>
+</div>
+
+<main id="app"></main>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ================= API HELPER ================= */
+async function api(path, opts = {}){
+  const { method='GET', body, token, timeoutMs=12000 } = opts;
+  const headers = { 'Content-Type': 'application/json' };
+  if(token) headers['Authorization'] = 'Bearer ' + token;
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), timeoutMs);
+  let res;
+  try{
+    res = await fetch(path, { method, headers, body: body!==undefined ? JSON.stringify(body) : undefined, signal: controller.signal });
+  }catch(err){
+    clearTimeout(timer);
+    if(err.name === 'AbortError') throw new Error('O servidor demorou demais para responder. Tente novamente.');
+    throw new Error('Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.');
+  }
+  clearTimeout(timer);
+  let data = null;
+  try{ data = await res.json(); }catch(e){}
+  if(!res.ok) throw new Error((data && data.erro) ? data.erro : 'Erro na requisição (' + res.status + ')');
+  return data;
+}
+function getVendToken(){ return localStorage.getItem('vendedorToken') || ''; }
+function setVendToken(t){ t ? localStorage.setItem('vendedorToken', t) : localStorage.removeItem('vendedorToken'); }
+function getMotoToken(){ return localStorage.getItem('motoToken') || ''; }
+function setMotoToken(t){ t ? localStorage.setItem('motoToken', t) : localStorage.removeItem('motoToken'); }
+function getMotoInfo(){ try{ return JSON.parse(localStorage.getItem('motoInfo')); }catch(e){ return null; } }
+function setMotoInfo(info){ info ? localStorage.setItem('motoInfo', JSON.stringify(info)) : localStorage.removeItem('motoInfo'); }
+function loadCart(){ try{ return JSON.parse(localStorage.getItem('carrinho')) || []; }catch(e){ return []; } }
+function saveCart(){ localStorage.setItem('carrinho', JSON.stringify(ui.cart)); }
+
+/* ================= STATE ================= */
+let state = {
+  menu: { categorias: [], produtos: [] },
+  addongroups: [],
+  orders: [],
+  motoqueiroContas: [],
+  pagamentoConfig: { pixChave: '', pixNome: '', cartaoMensagem: '' }
+};
+let ui = {
+  role: 'cliente', dark: false, clienteCat: 'Todos', cart: loadCart(),
+  pagMetodo: 'pix', precisaTroco: false,
+  vendedorLogged: !!getVendToken(), vtab: 'pedidos', pedidosFilter: 'ativos',
+  motoLogged: (getMotoToken() && getMotoInfo()) ? getMotoInfo() : null, motoAuthTab: 'entrar'
+};
+
+function uidLocal(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function money(v){ return 'R$ ' + Number(v||0).toFixed(2).replace('.', ','); }
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.getElementById('toastRoot').appendChild(el);
+  setTimeout(()=>el.remove(), 2600);
+}
+function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dateKeyOf(ts){ const d=new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function formatDateBR(dateKey){ const [y,m,d]=dateKey.split('-'); return `${d}-${m}-${y}`; }
+function formatDateLongBR(dateKey){
+  const [y,m,d] = dateKey.split('-');
+  const dt = new Date(Number(y), Number(m)-1, Number(d));
+  const s = dt.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+const PAY_LABEL = { pix: 'Pix', cartao: 'Cartão', dinheiro: 'Dinheiro' };
+const PAY_ICON = { pix: '🔑', cartao: '💳', dinheiro: '💵' };
+const STATUS_LABEL = {pendente:'Pendente', preparando:'Preparando', pronto:'Pronto', em_entrega:'Em entrega', entregue:'Entregue', cancelado:'Cancelado'};
+
+/* ================= INIT ================= */
+async function init(){
+  document.getElementById('app').innerHTML = '<div class="empty-state">Carregando cardápio…</div>';
+  setConnStatus('conectando');
+  try{
+    await Promise.all([loadMenu(), loadAddonGroups(), loadPagamento()]);
+  }catch(e){
+    setConnStatus('offline');
+    document.getElementById('app').innerHTML = `
+      <div class="empty-state">
+        <p>${esc(e.message)}</p>
+        <button class="btn btn-primary btn-sm" onclick="init()">Tentar novamente</button>
+      </div>`;
+    setupSocket(); // já deixa tentando reconectar em segundo plano
+    return;
+  }
+  setupSocket();
+  renderRoleTabs();
+  render();
+}
+async function loadMenu(){ state.menu = await api('/api/menu'); }
+async function loadAddonGroups(){ state.addongroups = await api('/api/addongroups'); }
+async function loadPagamento(){ state.pagamentoConfig = await api('/api/pagamento'); }
+
+function setConnStatus(status){
+  const dot = document.getElementById('connDot');
+  if(!dot) return;
+  dot.classList.toggle('off', status !== 'online');
+  const titles = { online: 'Conectado em tempo real', offline: 'Sem conexão — tentando reconectar…', conectando: 'Conectando…' };
+  dot.title = titles[status] || '';
+}
+
+let _socketConnectedOnce = false;
+function setupSocket(){
+  if(typeof io !== 'function'){ setConnStatus('offline'); return; }
+  try{
+    const socket = io({ reconnectionDelay: 1500, reconnectionAttempts: Infinity, timeout: 10000 });
+    socket.on('connect', ()=>{
+      setConnStatus('online');
+      if(_socketConnectedOnce){
+        // reconectou depois de ficar offline: atualiza a tela atual pra não perder nada
+        toast('Conexão restabelecida.');
+        if(ui.role==='vendedor' && ui.vendedorLogged) renderVtabContent();
+        else if(ui.role==='motoqueiro' && ui.motoLogged) refreshMotoOrders();
+        else if(ui.role==='cliente'){ loadMenu().then(renderCliente).catch(()=>{}); loadAddonGroups().catch(()=>{}); loadPagamento().catch(()=>{}); }
+      }
+      _socketConnectedOnce = true;
+    });
+    socket.on('disconnect', ()=>{ setConnStatus('offline'); });
+    socket.on('connect_error', ()=>{ setConnStatus('offline'); });
+    socket.on('pedidos:mudou', ()=>{
+      if(ui.role==='vendedor' && ui.vendedorLogged && ui.vtab==='pedidos') refreshPedidosTab();
+      if(ui.role==='motoqueiro' && ui.motoLogged) refreshMotoOrders();
+    });
+    socket.on('cardapio:mudou', async ()=>{
+      try{
+        await Promise.all([loadMenu(), loadAddonGroups()]);
+        if(ui.role==='cliente') renderCliente();
+        if(ui.role==='vendedor' && ui.vendedorLogged && (ui.vtab==='cardapio' || ui.vtab==='adicionais')) renderVtabContent();
+      }catch(e){ /* atualiza na próxima tentativa */ }
+    });
+    socket.on('config:mudou', async ()=>{
+      try{
+        await loadPagamento();
+        if(ui.role==='vendedor' && ui.vendedorLogged && ui.vtab==='pagamento') renderVtabContent();
+      }catch(e){ /* atualiza na próxima tentativa */ }
+    });
+  }catch(e){
+    setConnStatus('offline');
+  }
+}
+
+function renderRoleTabs(){
+  const roles = [['cliente','Cliente'],['vendedor','Vendedor'],['motoqueiro','Motoqueiro']];
+  document.getElementById('roleTabs').innerHTML = roles.map(([id,label])=>
+    `<button class="role-tab ${ui.role===id?'active':''}" onclick="setRole('${id}')">${label}</button>`
+  ).join('');
+}
+function setRole(role){
+  ui.role = role;
+  renderRoleTabs();
+  document.getElementById('cartBtn').classList.toggle('hidden', role !== 'cliente');
+  render();
+}
+function toggleDark(){
+  ui.dark = !ui.dark;
+  document.body.classList.toggle('dark', ui.dark);
+  document.getElementById('darkBtn').textContent = ui.dark ? '☀️' : '🌙';
+}
+function render(){
+  updateCartBadge();
+  if(ui.role === 'cliente') renderCliente();
+  else if(ui.role === 'vendedor') renderVendedor();
+  else renderMotoqueiro();
+}
+
+/* ================= CLIENTE ================= */
+function renderCliente(){
+  const app = document.getElementById('app');
+  const cats = ['Todos', ...state.menu.categorias.map(c=>c.nome)];
+  const produtos = state.menu.produtos.filter(p => ui.clienteCat==='Todos' || p.categoria===ui.clienteCat);
+  app.innerHTML = `
+    <div class="hero">
+      <div class="hero-eyebrow">✨ Cardápio de hoje</div>
+      <h1 class="hero-title">O que vamos preparar<br>pra você?</h1>
+      <p class="hero-sub">Escolha os itens, monte seus adicionais e finalize com Pix, cartão ou dinheiro.</p>
+    </div>
+    <div class="cat-tabs">${cats.map(c=>`<button class="cat-tab ${ui.clienteCat===c?'active':''}" onclick="setClienteCat('${esc(c)}')">${esc(c)}</button>`).join('')}</div>
+    <div class="prod-grid" id="prodGrid"></div>
+  `;
+  const grid = document.getElementById('prodGrid');
+  if(produtos.length===0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">Nenhum item nessa categoria ainda.</div>`;
+    return;
+  }
+  grid.innerHTML = produtos.map(p => `
+    <div class="card prod-card">
+      <div class="prod-img-wrap">
+        ${p.imagem ? `<img class="prod-img" loading="lazy" src="${p.imagem}">` : `<div class="prod-img-empty">🍽️</div>`}
+        <span class="prod-cat-chip">${esc(p.categoria)}</span>
+        <button class="fab-add" onclick="openProductModal('${p.id}')" title="Adicionar">+</button>
+      </div>
+      <div class="prod-body">
+        <h3 class="prod-name">${esc(p.nome)}</h3>
+        <div class="prod-foot"><span class="price">${money(p.preco)}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+function setClienteCat(c){ ui.clienteCat = c; renderCliente(); }
+
+function openProductModal(prodId){
+  const p = state.menu.produtos.find(x=>x.id===prodId);
+  if(!p) return;
+  const groups = state.addongroups.filter(g => g.categoria === p.categoria);
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-head"><h3 style="margin:0;">${esc(p.nome)}</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+        ${p.imagem?`<img src="${p.imagem}" style="width:100%;border-radius:16px;aspect-ratio:16/9;object-fit:cover;margin-bottom:14px;">`:''}
+        <div class="price" style="font-size:20px;margin-bottom:14px;">${money(p.preco)}</div>
+        ${groups.map(g=>`
+          <div style="margin-bottom:14px;">
+            <label>${esc(g.nome)}</label>
+            ${g.itens.map(it=>`
+              <div class="addon-row">
+                <input type="checkbox" id="addon_${it.id}" data-price="${it.preco}" data-name="${esc(it.nome)}">
+                <label for="addon_${it.id}" style="flex:1;margin:0;text-transform:none;font-weight:500;color:var(--ink);font-size:14px;">${esc(it.nome)}</label>
+                <span class="mono" style="font-size:13px;color:var(--ink-soft);">+ ${money(it.preco)}</span>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+        <div class="field">
+          <label>Quantidade</label>
+          <div class="qty-ctrl"><button onclick="stepQty(-1)">−</button><span id="modalQty" class="mono" style="min-width:24px;text-align:center;">1</span><button onclick="stepQty(1)">+</button></div>
+        </div>
+        <div class="field"><label>Observação (opcional)</label><textarea id="modalObs" rows="2" placeholder="Ex: sem cebola, ponto da carne, etc."></textarea></div>
+        <button class="btn btn-primary btn-block" onclick="confirmAddToCart('${p.id}')">Adicionar ao carrinho</button>
+      </div>
+    </div>
+  `;
+  window._modalQty = 1;
+}
+function stepQty(d){ window._modalQty = Math.max(1, (window._modalQty||1) + d); document.getElementById('modalQty').textContent = window._modalQty; }
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+function confirmAddToCart(prodId){
+  const p = state.menu.produtos.find(x=>x.id===prodId);
+  const groups = state.addongroups.filter(g => g.categoria === p.categoria);
+  const adicionais = [];
+  groups.forEach(g => g.itens.forEach(it => {
+    const cb = document.getElementById('addon_'+it.id);
+    if(cb && cb.checked) adicionais.push({nome: it.nome, preco: it.preco});
+  }));
+  const obs = document.getElementById('modalObs').value.trim();
+  const qtd = window._modalQty || 1;
+  ui.cart.push({ itemId: uidLocal('it'), produtoId: p.id, nome: p.nome, precoBase: p.preco, imagem: p.imagem, categoria: p.categoria, adicionais, obs, qtd });
+  saveCart();
+  closeModal(); updateCartBadge();
+  toast(`${p.nome} adicionado ao carrinho`);
+}
+function updateCartBadge(){
+  const badge = document.getElementById('cartBadge');
+  const total = ui.cart.reduce((s,i)=>s+i.qtd,0);
+  badge.textContent = total; badge.classList.toggle('hidden', total===0);
+}
+function cartItemTotal(item){ return (item.precoBase + item.adicionais.reduce((s,a)=>s+a.preco,0)) * item.qtd; }
+function cartTotal(){ return ui.cart.reduce((s,i)=>s+cartItemTotal(i),0); }
+
+function openCart(){
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="drawer-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="drawer">
+        <div class="modal-head"><h3 style="margin:0;">Seu carrinho</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+        <div id="cartList" style="flex:1;overflow-y:auto;"></div>
+        <div id="cartCheckout"></div>
+      </div>
+    </div>`;
+  renderCartList();
+}
+function renderCartList(){
+  const list = document.getElementById('cartList');
+  const checkout = document.getElementById('cartCheckout');
+  if(ui.cart.length===0){ list.innerHTML = `<div class="empty-state">Seu carrinho está vazio.</div>`; checkout.innerHTML = ''; return; }
+  list.innerHTML = ui.cart.map(item => `
+    <div class="cart-item">
+      ${item.imagem?`<img loading="lazy" src="${item.imagem}">`:`<div class="thumb-empty">🍽️</div>`}
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;">${esc(item.nome)}</div>
+        ${item.adicionais.length?`<div style="font-size:12px;color:var(--ink-soft);">${item.adicionais.map(a=>esc(a.nome)).join(', ')}</div>`:''}
+        ${item.obs?`<div style="font-size:12px;color:var(--ink-soft);font-style:italic;">"${esc(item.obs)}"</div>`:''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <div class="qty-ctrl"><button onclick="changeCartQty('${item.itemId}',-1)">−</button><span class="mono">${item.qtd}</span><button onclick="changeCartQty('${item.itemId}',1)">+</button></div>
+          <span class="price">${money(cartItemTotal(item))}</span>
+        </div>
+      </div>
+      <button class="btn-ghost" onclick="removeCartItem('${item.itemId}')">✕</button>
+    </div>`).join('');
+  checkout.innerHTML = `
+    <div style="border-top:1px solid var(--line);padding-top:16px;margin-top:10px;">
+      <div style="display:flex;justify-content:space-between;font-weight:800;font-size:18px;margin-bottom:16px;"><span>Total</span><span class="price">${money(cartTotal())}</span></div>
+      <div class="field"><label>Nome do cliente</label><input id="ckNome" placeholder="Seu nome"></div>
+      <div class="field"><label>Telefone</label><input id="ckTelefone" placeholder="(00) 00000-0000"></div>
+      <div class="field"><label>Endereço completo</label><textarea id="ckEndereco" rows="2" placeholder="Rua, número, bairro, cidade"></textarea></div>
+      <div class="field"><label>Forma de pagamento</label><div class="pay-tabs" id="payTabs"></div><div id="payDetail"></div></div>
+      <button class="btn btn-primary btn-block" onclick="finalizarPedido()">Finalizar pedido</button>
+    </div>`;
+  renderPayTabs();
+}
+function renderPayTabs(){
+  const wrap = document.getElementById('payTabs');
+  const opts = [['pix','🔑','Pix'],['cartao','💳','Cartão'],['dinheiro','💵','Dinheiro']];
+  wrap.innerHTML = opts.map(([id,icon,label])=>`<button class="pay-tab ${ui.pagMetodo===id?'active':''}" onclick="setPagMetodo('${id}')"><span class="pay-icon">${icon}</span>${label}</button>`).join('');
+  renderPayDetail();
+}
+function setPagMetodo(m){ ui.pagMetodo = m; renderPayTabs(); }
+function renderPayDetail(){
+  const el = document.getElementById('payDetail');
+  if(ui.pagMetodo === 'pix'){
+    const chave = state.pagamentoConfig.pixChave || 'Chave Pix não configurada pelo vendedor';
+    el.innerHTML = `
+      <div class="pix-box">
+        <span style="font-size:12.5px;color:var(--ink-soft);">Copie a chave abaixo e envie o comprovante ao finalizar</span>
+        <div class="pix-key-row"><div class="pix-key">${esc(chave)}</div><button class="btn btn-outline btn-sm copy-btn" onclick="copyPixKey()">Copiar</button></div>
+        ${state.pagamentoConfig.pixNome?`<span style="font-size:12.5px;color:var(--ink-soft);">Titular: ${esc(state.pagamentoConfig.pixNome)}</span>`:''}
+      </div>`;
+  } else if(ui.pagMetodo === 'cartao'){
+    el.innerHTML = `<div class="info-box">💳 ${esc(state.pagamentoConfig.cartaoMensagem || 'Pagamento com cartão na entrega.')}</div>`;
+  } else {
+    el.innerHTML = `
+      <div class="info-box" style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-weight:600;color:var(--ink);font-size:14px;">
+          <input type="checkbox" id="ckPrecisaTroco" ${ui.precisaTroco?'checked':''} onchange="toggleTroco(this.checked)" style="width:18px;height:18px;accent-color:var(--accent);"> Preciso de troco
+        </label>
+        <div id="trocoInputWrap" class="${ui.precisaTroco?'':'hidden'}"><label style="margin-bottom:6px;">Troco para quanto?</label><input id="ckTrocoPara" type="number" step="0.01" min="0" placeholder="Ex: 50,00"></div>
+      </div>`;
+  }
+}
+function toggleTroco(val){ ui.precisaTroco = val; renderPayDetail(); }
+function copyPixKey(){
+  const chave = state.pagamentoConfig.pixChave;
+  if(!chave){ toast('O vendedor ainda não cadastrou uma chave Pix.'); return; }
+  navigator.clipboard.writeText(chave).then(()=> toast('Chave Pix copiada!')).catch(()=> toast('Não foi possível copiar automaticamente.'));
+}
+function changeCartQty(itemId, d){ const item = ui.cart.find(i=>i.itemId===itemId); if(!item) return; item.qtd = Math.max(1, item.qtd + d); saveCart(); renderCartList(); updateCartBadge(); }
+function removeCartItem(itemId){ ui.cart = ui.cart.filter(i=>i.itemId!==itemId); saveCart(); renderCartList(); updateCartBadge(); }
+async function finalizarPedido(){
+  const nome = document.getElementById('ckNome').value.trim();
+  const telefone = document.getElementById('ckTelefone').value.trim();
+  const endereco = document.getElementById('ckEndereco').value.trim();
+  if(ui.cart.length===0){ toast('Seu carrinho está vazio.'); return; }
+  if(!nome || !telefone || !endereco){ toast('Preencha nome, telefone e endereço.'); return; }
+  let pagamento = { metodo: ui.pagMetodo };
+  if(ui.pagMetodo === 'dinheiro'){
+    const precisaTroco = document.getElementById('ckPrecisaTroco') ? document.getElementById('ckPrecisaTroco').checked : false;
+    pagamento.trocoPara = null;
+    if(precisaTroco){
+      const val = parseFloat(document.getElementById('ckTrocoPara').value);
+      if(isNaN(val) || val <= 0){ toast('Informe o valor para o troco.'); return; }
+      pagamento.trocoPara = val;
+    }
+  }
+  try{
+    await api('/api/orders', { method:'POST', body: {
+      cliente: { nome, telefone, endereco },
+      itens: ui.cart.map(i=>({nome:i.nome, categoria:i.categoria, precoBase:i.precoBase, adicionais:i.adicionais, obs:i.obs, qtd:i.qtd})),
+      total: cartTotal(),
+      pagamento
+    }});
+    ui.cart = []; saveCart();
+    ui.pagMetodo = 'pix'; ui.precisaTroco = false;
+    closeModal(); updateCartBadge();
+    toast('Pedido enviado! Aguarde a confirmação.');
+  }catch(e){ toast(e.message); }
+}
+
+/* ================= VENDEDOR ================= */
+function renderVendedor(){
+  const app = document.getElementById('app');
+  if(!ui.vendedorLogged){
+    app.innerHTML = `
+      <div class="auth-wrap card" style="padding:30px;">
+        <h2 style="margin-top:0;">Área do vendedor</h2>
+        <p style="color:var(--ink-soft);font-size:14px;margin-top:-6px;">Entre com a senha da loja para gerenciar pedidos e cardápio.</p>
+        <div class="field"><label>Senha</label><input type="password" id="vendSenha" placeholder="Senha do vendedor"></div>
+        <button class="btn btn-primary btn-block" onclick="vendedorLogin()">Entrar</button>
+        <p style="color:var(--ink-soft);font-size:12.5px;margin-top:14px;">Senha padrão inicial: <span class="mono">admin123</span></p>
+      </div>`;
+    return;
+  }
+  app.innerHTML = `
+    <div class="section-title">
+      <h1 class="hero-title" style="margin:0;font-size:26px;color:var(--ink);">Painel do vendedor</h1>
+      <button class="btn btn-outline btn-sm" onclick="vendedorLogout()">Sair</button>
+    </div>
+    <div class="vtabs">
+      ${[['pedidos','Pedidos'],['cardapio','Cardápio'],['adicionais','Adicionais'],['pagamento','Pagamento'],['motoqueiros','Motoqueiros'],['relatorios','Planilha de Vendas'],['conta','Minha conta']].map(([id,l])=>
+        `<button class="vtab ${ui.vtab===id?'active':''}" onclick="setVtab('${id}')">${l}</button>`).join('')}
+    </div>
+    <div id="vtabContent"></div>`;
+  renderVtabContent();
+}
+function setVtab(t){ ui.vtab = t; renderVendedor(); }
+async function vendedorLogin(){
+  const senha = document.getElementById('vendSenha').value;
+  try{
+    const {token} = await api('/api/vendedor/login', {method:'POST', body:{senha}});
+    setVendToken(token);
+    ui.vendedorLogged = true; ui.vtab = 'pedidos';
+    renderVendedor();
+  }catch(e){ toast(e.message); }
+}
+function vendedorLogout(){ setVendToken(''); ui.vendedorLogged = false; renderVendedor(); }
+
+function renderVtabContent(){
+  const c = document.getElementById('vtabContent');
+  if(ui.vtab==='pedidos') return renderPedidosTab(c);
+  if(ui.vtab==='cardapio') return renderCardapioTab(c);
+  if(ui.vtab==='adicionais') return renderAdicionaisTab(c);
+  if(ui.vtab==='pagamento') return renderPagamentoTab(c);
+  if(ui.vtab==='motoqueiros') return renderMotoqueirosTab(c);
+  if(ui.vtab==='relatorios') return renderRelatoriosTab(c);
+  if(ui.vtab==='conta') return renderContaVendedorTab(c);
+}
+
+/* --- PEDIDOS --- */
+function renderPedidosTab(c){
+  c.innerHTML = `
+    <div class="pay-tabs" style="max-width:340px;">
+      <button class="pay-tab ${ui.pedidosFilter!=='historico'?'active':''}" onclick="setPedidosFilter('ativos')"><span class="pay-icon">🔥</span>Ativos</button>
+      <button class="pay-tab ${ui.pedidosFilter==='historico'?'active':''}" onclick="setPedidosFilter('historico')"><span class="pay-icon">🕓</span>Histórico</button>
+    </div>
+    <div id="pedidosListInner" style="margin-top:16px;"><div class="empty-state">Carregando pedidos…</div></div>`;
+  refreshPedidosTab();
+}
+function setPedidosFilter(f){ ui.pedidosFilter = f; renderPedidosTab(document.getElementById('vtabContent')); }
+async function refreshPedidosTab(){
+  const inner = document.getElementById('pedidosListInner');
+  if(!inner) return;
+  try{
+    const status = ui.pedidosFilter==='historico' ? 'historico' : 'ativos';
+    const [orders, motos] = await Promise.all([
+      api('/api/orders?status='+status, {token:getVendToken()}),
+      api('/api/motoqueiros', {token:getVendToken()})
+    ]);
+    state.orders = orders; state.motoqueiroContas = motos;
+    if(orders.length===0){ inner.innerHTML = `<div class="empty-state">${status==='historico'?'Nenhum pedido no histórico ainda.':'Nenhum pedido ativo no momento.'}</div>`; return; }
+    inner.innerHTML = orders.map(o=>ticketHTML(o,true)).join('');
+  }catch(e){
+    if(String(e.message).includes('Sessão')){ vendedorLogout(); return; }
+    inner.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+  }
+}
+function paymentBadgeHTML(o){
+  if(!o.pagamento || !o.pagamento.metodo) return '';
+  const m = o.pagamento.metodo;
+  let extra = '';
+  if(m==='dinheiro') extra = o.pagamento.trocoPara ? ` · troco p/ ${money(o.pagamento.trocoPara)}` : ' · sem troco';
+  return `<span class="pay-badge">${PAY_ICON[m]} ${PAY_LABEL[m]}${extra}</span>`;
+}
+function ticketHTML(o, vendorView){
+  const moto = state.motoqueiroContas.find(m=>m.id===o.motoqueiroId);
+  let actions = '';
+  if(vendorView){
+    if(o.status==='pendente') actions = `<button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${o.id}','preparando')">Aceitar pedido</button><button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${o.id}','cancelado')">Cancelar</button>`;
+    else if(o.status==='preparando') actions = `<button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${o.id}','pronto')">Marcar como pronto</button><button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${o.id}','cancelado')">Cancelar</button>`;
+    else if(o.status==='pronto'){
+      const options = state.motoqueiroContas.map(m=>`<option value="${m.id}">${esc(m.email)}</option>`).join('');
+      actions = `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%;">
+          <select id="motoSelect_${o.id}" style="max-width:220px;"><option value="">Escolher motoqueiro…</option>${options}</select>
+          <button class="btn btn-primary btn-sm" onclick="sendToMoto('${o.id}')">Enviar para entrega</button>
+        </div>`;
+    }
+    else if(o.status==='em_entrega') actions = `<span class="pill">Com ${moto ? esc(moto.email) : 'motoqueiro'} — aguardando entrega</span>`;
+  }
+  return `
+  <div class="ticket st-${o.status}">
+    <div class="ticket-head">
+      <div>
+        <div class="ticket-num">PEDIDO #${o.numero}</div>
+        <div style="font-size:13px;font-weight:700;margin-top:2px;">${esc(o.cliente.nome)}</div>
+        <div style="font-size:12px;color:var(--ink-soft);">${esc(o.cliente.telefone)} · ${esc(o.cliente.endereco)}</div>
+      </div>
+      <span class="status-pill st-${o.status}">${STATUS_LABEL[o.status]}</span>
+    </div>
+    ${o.itens.map(it=>`
+      <div class="ticket-item"><span>${it.qtd}× ${esc(it.nome)}</span><span class="mono">${money((it.precoBase+it.adicionais.reduce((s,a)=>s+a.preco,0))*it.qtd)}</span></div>
+      ${it.adicionais.map(a=>`<div class="ticket-addon">+ ${esc(a.nome)}</div>`).join('')}
+      ${it.obs?`<div class="ticket-addon" style="font-style:italic;">"${esc(it.obs)}"</div>`:''}
+    `).join('')}
+    <div class="ticket-foot">
+      ${paymentBadgeHTML(o)}
+      <span style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">Total</span><span class="price">${money(o.total)}</span></span>
+    </div>
+    ${actions ? `<div class="ticket-actions">${actions}</div>` : ''}
+  </div>`;
+}
+async function updateOrderStatus(id, status){
+  try{ await api(`/api/orders/${id}/status`, {method:'PUT', body:{status}, token:getVendToken()}); toast('Pedido atualizado.'); refreshPedidosTab(); }
+  catch(e){ toast(e.message); }
+}
+async function sendToMoto(id){
+  const sel = document.getElementById('motoSelect_'+id);
+  const motoId = sel.value;
+  if(!motoId){ toast('Selecione um motoqueiro.'); return; }
+  try{ await api(`/api/orders/${id}/enviar-entrega`, {method:'PUT', body:{motoqueiroId:motoId}, token:getVendToken()}); toast('Pedido enviado para entrega.'); refreshPedidosTab(); }
+  catch(e){ toast(e.message); }
+}
+
+/* --- CARDÁPIO --- */
+function renderCardapioTab(c){
+  c.innerHTML = `
+    <div class="row">
+      <div class="col card" style="padding:18px;min-width:260px;flex:0 0 280px;">
+        <div class="section-title"><h3 style="margin:0;font-size:16px;">Categorias</h3></div>
+        <div id="catList"></div>
+        <div class="field" style="margin-top:14px;">
+          <label>Nova categoria</label>
+          <div style="display:flex;gap:8px;"><input id="novaCatNome" placeholder="Ex: Sobremesas"><button class="btn btn-primary btn-sm" onclick="addCategoria()">+</button></div>
+        </div>
+      </div>
+      <div class="col card" style="padding:18px;flex:2;min-width:320px;">
+        <div class="section-title"><h3 style="margin:0;font-size:16px;">Produtos</h3><button class="btn btn-primary btn-sm" onclick="openProductForm(null)">+ Novo produto</button></div>
+        <div id="prodList"></div>
+      </div>
+    </div>`;
+  document.getElementById('catList').innerHTML = state.menu.categorias.map(cat=>`
+    <div class="list-row" style="padding-left:0;">
+      <input value="${esc(cat.nome)}" onchange="renameCategoria('${cat.id}', this.value)" style="flex:1;">
+      <button class="btn-ghost" onclick="deleteCategoria('${cat.id}')">🗑️</button>
+    </div>`).join('') || `<p style="color:var(--ink-soft);font-size:13.5px;">Nenhuma categoria ainda.</p>`;
+  const pl = document.getElementById('prodList');
+  if(state.menu.produtos.length===0){ pl.innerHTML = `<div class="empty-state">Nenhum produto cadastrado.</div>`; }
+  else {
+    pl.innerHTML = state.menu.produtos.map(p=>`
+      <div class="list-row" style="padding-left:0;">
+        ${p.imagem?`<img class="thumb" loading="lazy" src="${p.imagem}">`:`<div class="thumb-empty">🍽️</div>`}
+        <div style="flex:1;"><div style="font-weight:700;font-size:14px;">${esc(p.nome)}</div><div style="font-size:12px;color:var(--ink-soft);">${esc(p.categoria)} · ${money(p.preco)}</div></div>
+        <button class="btn btn-outline btn-sm" onclick="openProductForm('${p.id}')">Editar</button>
+        <button class="btn-ghost" onclick="deleteProduto('${p.id}')">🗑️</button>
+      </div>`).join('');
+  }
+}
+async function addCategoria(){
+  const nome = document.getElementById('novaCatNome').value.trim();
+  if(!nome) return;
+  try{ await api('/api/menu/categorias', {method:'POST', body:{nome}, token:getVendToken()}); await loadMenu(); renderCardapioTab(document.getElementById('vtabContent')); toast('Categoria adicionada.'); }
+  catch(e){ toast(e.message); }
+}
+async function renameCategoria(id, novoNome){
+  try{ await api(`/api/menu/categorias/${id}`, {method:'PUT', body:{nome:novoNome}, token:getVendToken()}); await loadMenu(); toast('Categoria atualizada.'); }
+  catch(e){ toast(e.message); }
+}
+async function deleteCategoria(id){
+  const cat = state.menu.categorias.find(c=>c.id===id);
+  if(!cat || !confirm(`Excluir a categoria "${cat.nome}"?`)) return;
+  try{ await api(`/api/menu/categorias/${id}`, {method:'DELETE', token:getVendToken()}); await loadMenu(); renderCardapioTab(document.getElementById('vtabContent')); }
+  catch(e){ toast(e.message); }
+}
+async function deleteProduto(id){
+  if(!confirm('Excluir este produto do cardápio?')) return;
+  try{ await api(`/api/menu/produtos/${id}`, {method:'DELETE', token:getVendToken()}); await loadMenu(); renderCardapioTab(document.getElementById('vtabContent')); }
+  catch(e){ toast(e.message); }
+}
+function openProductForm(prodId){
+  const p = prodId ? state.menu.produtos.find(x=>x.id===prodId) : null;
+  const catOptions = state.menu.categorias.map(c=>`<option value="${esc(c.nome)}" ${p&&p.categoria===c.nome?'selected':''}>${esc(c.nome)}</option>`).join('');
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-head"><h3 style="margin:0;">${p?'Editar produto':'Novo produto'}</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+        <div class="field"><label>Nome do produto</label><input id="pfNome" value="${p?esc(p.nome):''}" placeholder="Ex: X-Salada"></div>
+        <div class="field"><label>Categoria</label><select id="pfCategoria">${catOptions || '<option value="">Cadastre uma categoria primeiro</option>'}</select></div>
+        <div class="field"><label>Valor (R$)</label><input id="pfPreco" type="number" step="0.01" min="0" value="${p?p.preco:''}" placeholder="0.00"></div>
+        <div class="field">
+          <label>Imagem (PNG ou JPG)</label>
+          <input id="pfImagem" type="file" accept="image/png,image/jpeg">
+          <img id="pfPreview" src="${p&&p.imagem?p.imagem:''}" style="${p&&p.imagem?'':'display:none;'}margin-top:10px;width:100%;max-height:160px;object-fit:cover;border-radius:14px;">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="saveProduto('${p?p.id:''}')">Salvar produto</button>
+      </div>
+    </div>`;
+  document.getElementById('pfImagem').addEventListener('change', async (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const dataUrl = await resizeImage(file);
+    document.getElementById('pfPreview').src = dataUrl;
+    document.getElementById('pfPreview').style.display = 'block';
+    window._pfImagemData = dataUrl;
+  });
+  window._pfImagemData = p ? p.imagem : '';
+}
+function resizeImage(file, maxW=440, quality=0.68){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = Math.min(1, maxW/img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width*scale; canvas.height = img.height*scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function saveProduto(existingId){
+  const nome = document.getElementById('pfNome').value.trim();
+  const categoria = document.getElementById('pfCategoria').value;
+  const preco = parseFloat(document.getElementById('pfPreco').value);
+  if(!nome || !categoria || isNaN(preco)){ toast('Preencha nome, categoria e valor.'); return; }
+  const imagem = window._pfImagemData || '';
+  try{
+    if(existingId) await api(`/api/menu/produtos/${existingId}`, {method:'PUT', body:{nome,categoria,preco,imagem}, token:getVendToken()});
+    else await api('/api/menu/produtos', {method:'POST', body:{nome,categoria,preco,imagem}, token:getVendToken()});
+    await loadMenu();
+    closeModal(); renderCardapioTab(document.getElementById('vtabContent')); toast('Produto salvo.');
+  }catch(e){ toast(e.message); }
+}
+
+/* --- ADICIONAIS --- */
+function renderAdicionaisTab(c){
+  const cats = state.menu.categorias.map(c=>c.nome);
+  c.innerHTML = `
+    <div class="card" style="padding:18px;margin-bottom:16px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>Filtrar por categoria</label>
+        <select id="adCatFilter"><option value="">Todas as categorias</option>${cats.map(c=>`<option value="${esc(c)}" ${ui._adCat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="section-title"><h3 style="margin:0;font-size:16px;">Grupos de adicionais</h3><button class="btn btn-primary btn-sm" onclick="openGroupForm()">+ Novo grupo</button></div>
+    <div id="groupList"></div>`;
+  const sel = document.getElementById('adCatFilter');
+  sel.addEventListener('change', ()=>{ ui._adCat = sel.value; renderAdicionaisTab(document.getElementById('vtabContent')); });
+  const filtered = state.addongroups.filter(g => !ui._adCat || g.categoria === ui._adCat);
+  const gl = document.getElementById('groupList');
+  if(filtered.length===0){ gl.innerHTML = `<div class="empty-state">Nenhum grupo de adicionais ainda.</div>`; return; }
+  gl.innerHTML = filtered.map(g=>`
+    <div class="card" style="padding:16px;margin-bottom:14px;">
+      <div class="section-title">
+        <div><div style="font-weight:700;">${esc(g.nome)}</div><span class="pill">${esc(g.categoria)}</span></div>
+        <div style="display:flex;gap:6px;"><button class="btn btn-outline btn-sm" onclick="openGroupForm('${g.id}')">Editar grupo</button><button class="btn-ghost" onclick="deleteGroup('${g.id}')">🗑️</button></div>
+      </div>
+      ${g.itens.map(it=>`
+        <div class="list-row">
+          <input value="${esc(it.nome)}" onchange="renameAddonItem('${g.id}','${it.id}', this.value)" style="flex:1;">
+          <input type="number" step="0.01" value="${it.preco}" style="width:100px;" onchange="repriceAddonItem('${g.id}','${it.id}', this.value)">
+          <button class="btn-ghost" onclick="deleteAddonItem('${g.id}','${it.id}')">🗑️</button>
+        </div>`).join('')}
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <input id="newItemName_${g.id}" placeholder="Novo item (ex: Bacon extra)">
+        <input id="newItemPrice_${g.id}" type="number" step="0.01" placeholder="Valor" style="width:100px;">
+        <button class="btn btn-primary btn-sm" onclick="addAddonItem('${g.id}')">+</button>
+      </div>
+    </div>`).join('');
+}
+function openGroupForm(groupId){
+  const g = groupId ? state.addongroups.find(x=>x.id===groupId) : null;
+  const catOptions = state.menu.categorias.map(c=>`<option value="${esc(c.nome)}" ${g&&g.categoria===c.nome?'selected':''}>${esc(c.nome)}</option>`).join('');
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-head"><h3 style="margin:0;">${g?'Editar grupo':'Novo grupo de adicionais'}</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+        <div class="field"><label>Nome do grupo</label><input id="gfNome" value="${g?esc(g.nome):''}" placeholder="Ex: Adicionais de Pizza"></div>
+        <div class="field"><label>Categoria de produtos vinculada</label><select id="gfCategoria">${catOptions||'<option value="">Cadastre uma categoria primeiro</option>'}</select></div>
+        <button class="btn btn-primary btn-block" onclick="saveGroup('${g?g.id:''}')">Salvar grupo</button>
+      </div>
+    </div>`;
+}
+async function saveGroup(existingId){
+  const nome = document.getElementById('gfNome').value.trim();
+  const categoria = document.getElementById('gfCategoria').value;
+  if(!nome || !categoria){ toast('Preencha nome e categoria.'); return; }
+  try{
+    if(existingId) await api(`/api/addongroups/${existingId}`, {method:'PUT', body:{nome,categoria}, token:getVendToken()});
+    else await api('/api/addongroups', {method:'POST', body:{nome,categoria}, token:getVendToken()});
+    await loadAddonGroups(); closeModal(); renderAdicionaisTab(document.getElementById('vtabContent')); toast('Grupo salvo.');
+  }catch(e){ toast(e.message); }
+}
+async function deleteGroup(id){
+  if(!confirm('Excluir este grupo de adicionais?')) return;
+  try{ await api(`/api/addongroups/${id}`, {method:'DELETE', token:getVendToken()}); await loadAddonGroups(); renderAdicionaisTab(document.getElementById('vtabContent')); }
+  catch(e){ toast(e.message); }
+}
+async function addAddonItem(groupId){
+  const nome = document.getElementById('newItemName_'+groupId).value.trim();
+  const preco = parseFloat(document.getElementById('newItemPrice_'+groupId).value);
+  if(!nome || isNaN(preco)){ toast('Preencha nome e valor do adicional.'); return; }
+  try{ await api(`/api/addongroups/${groupId}/itens`, {method:'POST', body:{nome,preco}, token:getVendToken()}); await loadAddonGroups(); renderAdicionaisTab(document.getElementById('vtabContent')); }
+  catch(e){ toast(e.message); }
+}
+async function renameAddonItem(groupId, itemId, val){
+  const g = state.addongroups.find(x=>x.id===groupId); const it = g.itens.find(x=>x.id===itemId);
+  try{ await api(`/api/addongroups/${groupId}/itens/${itemId}`, {method:'PUT', body:{nome:val, preco:it.preco}, token:getVendToken()}); await loadAddonGroups(); }
+  catch(e){ toast(e.message); }
+}
+async function repriceAddonItem(groupId, itemId, val){
+  const g = state.addongroups.find(x=>x.id===groupId); const it = g.itens.find(x=>x.id===itemId);
+  try{ await api(`/api/addongroups/${groupId}/itens/${itemId}`, {method:'PUT', body:{nome:it.nome, preco:parseFloat(val)||0}, token:getVendToken()}); await loadAddonGroups(); }
+  catch(e){ toast(e.message); }
+}
+async function deleteAddonItem(groupId, itemId){
+  try{ await api(`/api/addongroups/${groupId}/itens/${itemId}`, {method:'DELETE', token:getVendToken()}); await loadAddonGroups(); renderAdicionaisTab(document.getElementById('vtabContent')); }
+  catch(e){ toast(e.message); }
+}
+
+/* --- PAGAMENTO --- */
+function renderPagamentoTab(c){
+  const pc = state.pagamentoConfig;
+  c.innerHTML = `
+    <div class="card" style="padding:22px;max-width:480px;">
+      <h3 style="margin-top:0;display:flex;align-items:center;gap:8px;">🔑 Pix</h3>
+      <div class="field"><label>Chave Pix</label><input id="pgChave" value="${esc(pc.pixChave)}" placeholder="CPF, telefone, e-mail ou chave aleatória"></div>
+      <div class="field"><label>Nome do titular (opcional)</label><input id="pgNomeTitular" value="${esc(pc.pixNome||'')}" placeholder="Nome que aparece na chave"></div>
+      <hr style="margin:22px 0;border:none;border-top:1px solid var(--line);">
+      <h3 style="margin:0 0 8px;display:flex;align-items:center;gap:8px;">💳 Cartão</h3>
+      <div class="field"><label>Mensagem exibida ao cliente</label><textarea id="pgCartaoMsg" rows="3">${esc(pc.cartaoMensagem)}</textarea></div>
+      <button class="btn btn-primary btn-block" onclick="salvarPagamentoConfig()">Salvar formas de pagamento</button>
+    </div>`;
+}
+async function salvarPagamentoConfig(){
+  const body = {
+    pixChave: document.getElementById('pgChave').value.trim(),
+    pixNome: document.getElementById('pgNomeTitular').value.trim(),
+    cartaoMensagem: document.getElementById('pgCartaoMsg').value.trim()
+  };
+  try{ await api('/api/pagamento', {method:'PUT', body, token:getVendToken()}); await loadPagamento(); toast('Formas de pagamento atualizadas.'); }
+  catch(e){ toast(e.message); }
+}
+
+/* --- MOTOQUEIROS (cadastrados pelo vendedor) --- */
+function renderMotoqueirosTab(c){
+  c.innerHTML = `
+    <div class="row">
+      <div class="col card" style="padding:18px;flex:0 0 300px;min-width:260px;">
+        <h3 style="margin:0 0 14px;font-size:16px;">Cadastrar motoqueiro</h3>
+        <div class="field"><label>E-mail</label><input id="vmNovoEmail" type="email" placeholder="motoqueiro@exemplo.com"></div>
+        <div class="field"><label>Senha</label><input id="vmNovaSenha" type="password" placeholder="Senha de acesso"></div>
+        <div class="field"><label>Confirmar senha</label><input id="vmConfirmaSenha" type="password" placeholder="Repita a senha"></div>
+        <button class="btn btn-primary btn-block" onclick="vendedorCadastrarMoto()">Cadastrar conta</button>
+      </div>
+      <div class="col card" style="padding:18px;flex:2;min-width:320px;">
+        <div class="section-title"><h3 style="margin:0;font-size:16px;">Motoqueiros cadastrados</h3></div>
+        <div id="motoAccountList"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </div>`;
+  carregarListaMotoqueiros();
+}
+async function carregarListaMotoqueiros(){
+  try{
+    state.motoqueiroContas = await api('/api/motoqueiros', {token:getVendToken()});
+  }catch(e){ toast(e.message); return; }
+  const list = document.getElementById('motoAccountList');
+  if(!list) return;
+  if(state.motoqueiroContas.length===0){ list.innerHTML = `<div class="empty-state">Nenhum motoqueiro cadastrado ainda.</div>`; return; }
+  list.innerHTML = state.motoqueiroContas.map(m=>`
+    <div class="list-row" style="padding-left:0;flex-wrap:wrap;">
+      <div class="thumb-empty">🏍️</div>
+      <div style="flex:1;min-width:160px;"><div style="font-weight:700;font-size:14px;">${esc(m.email)}</div></div>
+      <button class="btn btn-outline btn-sm" onclick="vendedorResetSenhaMoto('${m.id}')">Redefinir senha</button>
+      <button class="btn btn-danger btn-sm" onclick="vendedorExcluirMoto('${m.id}')">Excluir</button>
+    </div>`).join('');
+}
+async function vendedorCadastrarMoto(){
+  const email = document.getElementById('vmNovoEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('vmNovaSenha').value;
+  const confirma = document.getElementById('vmConfirmaSenha').value;
+  if(!email || !email.includes('@')){ toast('Informe um e-mail válido.'); return; }
+  if(!senha || senha.length<4){ toast('A senha deve ter ao menos 4 caracteres.'); return; }
+  if(senha!==confirma){ toast('As senhas não coincidem.'); return; }
+  try{
+    await api('/api/motoqueiros', {method:'POST', body:{email,senha}, token:getVendToken()});
+    toast('Motoqueiro cadastrado com sucesso!');
+    carregarListaMotoqueiros();
+  }catch(e){ toast(e.message); }
+}
+async function vendedorResetSenhaMoto(id){
+  const m = state.motoqueiroContas.find(x=>x.id===id);
+  const nova = prompt(`Nova senha para ${m.email}:`, '');
+  if(nova === null) return;
+  if(!nova || nova.length<4){ toast('A senha deve ter ao menos 4 caracteres.'); return; }
+  try{ await api(`/api/motoqueiros/${id}/senha`, {method:'PUT', body:{novaSenha:nova}, token:getVendToken()}); toast('Senha redefinida.'); }
+  catch(e){ toast(e.message); }
+}
+async function vendedorExcluirMoto(id){
+  const m = state.motoqueiroContas.find(x=>x.id===id);
+  if(!confirm(`Excluir a conta do motoqueiro ${m.email}?`)) return;
+  try{ await api(`/api/motoqueiros/${id}`, {method:'DELETE', token:getVendToken()}); toast('Conta excluída.'); carregarListaMotoqueiros(); }
+  catch(e){ toast(e.message); }
+}
+
+/* --- PLANILHA DE VENDAS --- */
+function renderRelatoriosTab(c){
+  c.innerHTML = `
+    <div class="section-title"><h3 style="margin:0;font-size:16px;">Planilha de vendas</h3></div>
+    <p style="color:var(--ink-soft);font-size:13.5px;margin-top:-8px;margin-bottom:18px;">Os pedidos ficam disponíveis para exportação por 2 dias. Depois disso são removidos automaticamente do sistema.</p>
+    <div id="relatorioList"><div class="empty-state">Carregando…</div></div>`;
+  carregarRelatorio();
+}
+async function carregarRelatorio(){
+  let grupos;
+  try{ grupos = await api('/api/relatorio', {token:getVendToken()}); }
+  catch(e){ toast(e.message); return; }
+  const entries = Object.entries(grupos).sort((a,b)=>b[0].localeCompare(a[0]));
+  const list = document.getElementById('relatorioList');
+  if(!list) return;
+  if(entries.length===0){ list.innerHTML = `<div class="empty-state">Nenhuma venda registrada nos últimos 2 dias.</div>`; return; }
+  list.innerHTML = entries.map(([key,info])=>`
+    <div class="card" style="padding:18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div><div style="font-weight:700;font-size:15px;">${formatDateLongBR(key)}</div><div style="color:var(--ink-soft);font-size:13px;">${info.count} pedido${info.count>1?'s':''} · <span class="price">${money(info.total)}</span></div></div>
+      <button class="btn btn-primary btn-sm" onclick="gerarPlanilhaExcel('${key}')">📊 Baixar Excel</button>
+    </div>`).join('');
+}
+async function gerarPlanilhaExcel(dateKey){
+  let orders;
+  try{ orders = await api('/api/relatorio/'+dateKey, {token:getVendToken()}); }
+  catch(e){ toast(e.message); return; }
+  if(orders.length===0){ toast('Nenhuma venda encontrada nesse dia.'); return; }
+  const headers = ['Data e Hora','Nome do Cliente','Nome do Produto','Valor do Produto','Nome dos Adicionais','Valor dos Adicionais','Nome da Bebida','Valor da Bebida','Soma do Produto'];
+  const rows = [headers];
+  let totalGeral = 0;
+  orders.forEach(o=>{
+    const dataHora = new Date(o.criadoEm).toLocaleString('pt-BR');
+    (o.itens||[]).forEach(it=>{
+      const isBebida = (it.categoria||'').toLowerCase().includes('bebida');
+      const addNames = (it.adicionais||[]).map(a=>a.nome).join(', ');
+      const addValor = (it.adicionais||[]).reduce((s,a)=>s+a.preco,0);
+      const nomeExibicao = it.qtd>1 ? `${it.qtd}x ${it.nome}` : it.nome;
+      const linhaTotal = (it.precoBase + addValor) * it.qtd;
+      totalGeral += linhaTotal;
+      rows.push([dataHora, o.cliente.nome, isBebida?'':nomeExibicao, isBebida?'':it.precoBase, addNames, addValor||'', isBebida?nomeExibicao:'', isBebida?it.precoBase:'', Number(linhaTotal.toFixed(2))]);
+    });
+  });
+  rows.push([]);
+  rows.push(['', '', '', '', '', '', '', 'TOTAL GERAL', Number(totalGeral.toFixed(2))]);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:18},{wch:20},{wch:22},{wch:14},{wch:26},{wch:16},{wch:20},{wch:14},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, ('Venda ' + formatDateBR(dateKey)).slice(0,31));
+  XLSX.writeFile(wb, `venda (${formatDateBR(dateKey)}).xlsx`);
+  toast('Planilha gerada com sucesso!');
+}
+
+/* --- CONTA VENDEDOR --- */
+function renderContaVendedorTab(c){
+  c.innerHTML = `
+    <div class="card" style="padding:22px;max-width:440px;">
+      <h3 style="margin-top:0;">Alterar senha</h3>
+      <div class="field"><label>Senha atual</label><input type="password" id="cvAtual"></div>
+      <div class="field"><label>Nova senha</label><input type="password" id="cvNova"></div>
+      <div class="field"><label>Confirmar nova senha</label><input type="password" id="cvConfirma"></div>
+      <button class="btn btn-primary btn-block" onclick="changeVendedorPassword()">Salvar nova senha</button>
+      <hr style="margin:24px 0;border:none;border-top:1px solid var(--line);">
+      <h3 style="margin:0 0 8px;color:var(--danger);">Excluir conta</h3>
+      <p style="font-size:13.5px;color:var(--ink-soft);">Isso reseta o acesso do vendedor para a senha padrão. Cardápio e pedidos não são apagados.</p>
+      <button class="btn btn-danger btn-block" onclick="deleteVendedorAccount()">Excluir conta do vendedor</button>
+    </div>`;
+}
+async function changeVendedorPassword(){
+  const senhaAtual = document.getElementById('cvAtual').value;
+  const novaSenha = document.getElementById('cvNova').value;
+  const confirma = document.getElementById('cvConfirma').value;
+  if(novaSenha !== confirma){ toast('As senhas não coincidem.'); return; }
+  try{ await api('/api/vendedor/senha', {method:'PUT', body:{senhaAtual, novaSenha}, token:getVendToken()}); toast('Senha atualizada com sucesso.'); }
+  catch(e){ toast(e.message); }
+}
+async function deleteVendedorAccount(){
+  if(!confirm('Tem certeza que deseja excluir a conta do vendedor? A senha voltará ao padrão.')) return;
+  try{
+    await api('/api/vendedor/excluir-conta', {method:'POST', token:getVendToken()});
+    setVendToken(''); ui.vendedorLogged = false;
+    toast('Conta excluída. Senha redefinida para o padrão.');
+    renderVendedor();
+  }catch(e){ toast(e.message); }
+}
+
+/* ================= MOTOQUEIRO ================= */
+function renderMotoqueiro(){
+  const app = document.getElementById('app');
+  if(!ui.motoLogged){
+    app.innerHTML = `
+      <div class="auth-wrap card" style="padding:30px;">
+        <h2 style="margin-top:0;">Área do motoqueiro</h2>
+        <div class="auth-tabs">
+          <button class="auth-tab ${ui.motoAuthTab==='entrar'?'active':''}" onclick="setMotoAuthTab('entrar')">Entrar</button>
+          <button class="auth-tab ${ui.motoAuthTab==='cadastrar'?'active':''}" onclick="setMotoAuthTab('cadastrar')">Cadastrar</button>
+        </div>
+        <div id="motoAuthForm"></div>
+      </div>`;
+    renderMotoAuthForm();
+    return;
+  }
+  app.innerHTML = `
+    <div class="section-title">
+      <div><h1 class="hero-title" style="margin:0;font-size:24px;color:var(--ink);">Minhas entregas</h1><p style="color:var(--ink-soft);margin:4px 0 0;font-size:14px;">${esc(ui.motoLogged.email)}</p></div>
+      <div style="display:flex;gap:8px;"><button class="btn btn-outline btn-sm" onclick="motoLogout()">Sair</button><button class="btn btn-danger btn-sm" onclick="deleteMotoAccount()">Excluir conta</button></div>
+    </div>
+    <div id="motoOrders"><div class="empty-state">Carregando…</div></div>`;
+  refreshMotoOrders();
+}
+async function refreshMotoOrders(){
+  const container = document.getElementById('motoOrders');
+  if(!container) return;
+  let meusPedidos;
+  try{ meusPedidos = await api('/api/orders/mine', {token:getMotoToken()}); }
+  catch(e){
+    if(String(e.message).includes('Sessão')){ motoLogout(); return; }
+    container.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`; return;
+  }
+  const emEntrega = meusPedidos.filter(o=>o.status==='em_entrega');
+  const entregues = meusPedidos.filter(o=>o.status==='entregue');
+  if(meusPedidos.length===0){ container.innerHTML = `<div class="empty-state">Nenhuma entrega atribuída a você ainda. Aguarde o vendedor enviar um pedido.</div>`; return; }
+  container.innerHTML = `
+    ${emEntrega.length ? `<h3 style="font-size:15px;">Em andamento</h3>` : ''}
+    ${emEntrega.map(o=>motoTicketHTML(o)).join('')}
+    ${entregues.length ? `<h3 style="font-size:15px;margin-top:20px;">Entregues</h3>` : ''}
+    ${entregues.map(o=>motoTicketHTML(o)).join('')}`;
+}
+function motoTicketHTML(o){
+  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(o.cliente.endereco);
+  let actions = '';
+  if(o.status==='em_entrega'){
+    actions = `<a class="btn btn-outline btn-sm" href="${mapsUrl}" target="_blank" rel="noopener">📍 Abrir no Google Maps</a><button class="btn btn-primary btn-sm" onclick="marcarEntregue('${o.id}')">Marcar como entregue</button>`;
+  }
+  return `
+  <div class="ticket st-${o.status}">
+    <div class="ticket-head">
+      <div><div class="ticket-num">PEDIDO #${o.numero}</div><div style="font-size:13px;font-weight:700;margin-top:2px;">${esc(o.cliente.nome)}</div><div style="font-size:12px;color:var(--ink-soft);">${esc(o.cliente.telefone)} · ${esc(o.cliente.endereco)}</div></div>
+      <span class="status-pill st-${o.status}">${STATUS_LABEL[o.status]}</span>
+    </div>
+    <div class="ticket-foot">${paymentBadgeHTML(o)}<span style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">Total</span><span class="price">${money(o.total)}</span></span></div>
+    ${actions ? `<div class="ticket-actions">${actions}</div>` : ''}
+  </div>`;
+}
+async function marcarEntregue(id){
+  try{ await api(`/api/orders/${id}/entregar`, {method:'PUT', token:getMotoToken()}); toast('Pedido marcado como entregue.'); refreshMotoOrders(); }
+  catch(e){ toast(e.message); }
+}
+function setMotoAuthTab(t){ ui.motoAuthTab = t; renderMotoqueiro(); }
+function renderMotoAuthForm(){
+  const el = document.getElementById('motoAuthForm');
+  if(ui.motoAuthTab==='entrar'){
+    el.innerHTML = `
+      <div class="field"><label>E-mail</label><input id="motoEmail" type="email" placeholder="seuemail@exemplo.com"></div>
+      <div class="field"><label>Senha</label><input id="motoSenha" type="password"></div>
+      <button class="btn btn-primary btn-block" onclick="motoLogin()">Entrar</button>`;
+  } else {
+    el.innerHTML = `
+      <div class="field"><label>E-mail</label><input id="motoNovoEmail" type="email" placeholder="seuemail@exemplo.com"></div>
+      <div class="field"><label>Senha</label><input id="motoNovaSenha" type="password"></div>
+      <div class="field"><label>Confirmar senha</label><input id="motoConfirmaSenha" type="password"></div>
+      <button class="btn btn-primary btn-block" onclick="motoCadastrar()">Criar conta</button>`;
+  }
+}
+async function motoCadastrar(){
+  const email = document.getElementById('motoNovoEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('motoNovaSenha').value;
+  const confirma = document.getElementById('motoConfirmaSenha').value;
+  if(senha !== confirma){ toast('As senhas não coincidem.'); return; }
+  try{
+    const {token, motoqueiro} = await api('/api/motoqueiros/register', {method:'POST', body:{email,senha}});
+    setMotoToken(token); setMotoInfo(motoqueiro); ui.motoLogged = motoqueiro;
+    toast('Conta criada com sucesso!'); renderMotoqueiro();
+  }catch(e){ toast(e.message); }
+}
+async function motoLogin(){
+  const email = document.getElementById('motoEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('motoSenha').value;
+  try{
+    const {token, motoqueiro} = await api('/api/motoqueiros/login', {method:'POST', body:{email,senha}});
+    setMotoToken(token); setMotoInfo(motoqueiro); ui.motoLogged = motoqueiro;
+    renderMotoqueiro();
+  }catch(e){ toast(e.message); }
+}
+function motoLogout(){ setMotoToken(''); setMotoInfo(null); ui.motoLogged = null; renderMotoqueiro(); }
+async function deleteMotoAccount(){
+  if(!confirm('Tem certeza que deseja excluir sua conta de motoqueiro?')) return;
+  try{
+    await api(`/api/motoqueiros/${ui.motoLogged.id}`, {method:'DELETE', token:getMotoToken()});
+    setMotoToken(''); setMotoInfo(null); ui.motoLogged = null;
+    toast('Conta excluída.'); renderMotoqueiro();
+  }catch(e){ toast(e.message); }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,24 +1,6 @@
-# Dependências
 node_modules/
-dist/
-build/
-
-# Variáveis de ambiente
+restaurante.db
+restaurante.db-journal
+restaurante.db-wal
+restaurante.db-shm
 .env
-.env.local
-.env.*.local
-
-# Logs
-*.log
-npm-debug.log*
-
-# Editor
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Vite cache
-.vite/
