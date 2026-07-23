@@ -1,0 +1,6 @@
+node_modules/
+restaurante.db
+restaurante.db-journal
+restaurante.db-wal
+restaurante.db-shm
+.env
