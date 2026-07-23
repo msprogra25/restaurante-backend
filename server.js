@@ -340,6 +340,11 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, time: Date.now() });
 });
 
+// Fallback para rotas do React (SPA) — serve index.html para qualquer rota não mapeada pelas APIs
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 purgeOldOrders();
 setInterval(purgeOldOrders, 60 * 60 * 1000); // expurga pedidos com mais de 2 dias, a cada 1h
 
