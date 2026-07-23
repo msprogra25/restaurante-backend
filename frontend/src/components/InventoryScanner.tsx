@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react'
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser'
+import { BrowserMultiFormatReader } from '@zxing/browser'
 
 // ─── Tipos ───────────────────────────────────────────
 type ScannedProduct = {
@@ -58,7 +58,7 @@ export const InventoryScanner: React.FC = () => {
             const code = result.getText()
             setCurrentBarcode(code)
             stopCamera()  // para após primeira leitura
-          } else if (err && !(err instanceof NotFoundException)) {
+          } else if (err && err.name !== 'NotFoundException') {
             // NotFoundException é lançada a cada frame sem código; ignoramos
             console.warn('Erro de leitura:', err)
           }
