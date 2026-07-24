@@ -1,12 +1,12 @@
 # 🛒 GestorPro – Sistema de Gestão de Produtos e Estoque
 
-Sistema completo com painel administrativo para gestão de produtos, estoque e checkout, desenvolvido com React + TypeScript (frontend) e Node.js + Express (backend).
+Sistema completo com painel administrativo para gestão de produtos, estoque e checkout, desenvolvido com React + TypeScript e uma API serverless no Netlify.
 
 ## 🚀 Tecnologias
 
 - **Frontend**: React 18 + TypeScript + Vite
-- **Backend**: Node.js + TypeScript + Express
-- **Banco de Dados**: PostgreSQL
+- **Backend**: Netlify Functions + TypeScript
+- **Banco de Dados**: Netlify Database (Postgres) + Drizzle ORM
 - **Scanner**: @zxing/browser (leitura de código de barras via câmera)
 
 ## 📁 Estrutura do Projeto
@@ -22,14 +22,10 @@ restaurante-backend/
 │       │   └── ProductsPage.tsx
 │       ├── App.tsx
 │       └── index.css
-├── backend/           ← API Node.js + Express (em construção)
-│   └── src/
-│       ├── server.ts
-│       ├── db.ts
-│       └── routes/
-│           └── stock.ts
-└── db/
-    └── schema.sql     ← Esquema PostgreSQL
+├── netlify/functions/ ← API serverless
+├── db/                ← Esquema e cliente Drizzle
+├── netlify.toml       ← Configuração de build e publicação
+└── public/            ← Saída estática publicada
 ```
 
 ## ⚙️ Como rodar
@@ -42,13 +38,13 @@ npm run dev
 # Acesse http://localhost:3000
 ```
 
-### Backend
+### Aplicação completa
 ```bash
-cd backend
 npm install
-npm run dev
-# API em http://localhost:4000
+netlify dev --port 8889
 ```
+
+Configure `JWT_SECRET` no ambiente do site antes de usar as rotas autenticadas.
 
 ## 📷 Funcionalidades
 
